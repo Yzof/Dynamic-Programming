@@ -145,18 +145,35 @@ class DynamicProgramming
   end
 
   def super_frog_hops(n, k)
-    return [[1]*n] if k == 1
-    k = n if k > n
-    return nil if n > 999
-    return @super_cache[n] if @super_cache[n]
-    value = []
-    n.downto(2) do |idx|
-      if k >= (n-idx+1)
-        value += super_frog_hops(idx-1,k).map {|arr| [n-idx+1] + arr }
+    super_frog_cache = super_frog_cache_builder(n, k)
+    super_frog_cache[k][n]
+  end
+
+  def super_frog_cache_builder(n, k)
+    cache = {}
+    (1..n).each do |col|
+      (1..k).each do |row|
+        cache[row] = [[[]]] unless cache[row]
+        result = []
+        if row == 1
+          result << cache[row][col - 1][0] + [1]
+        elsif row == col
+          result = cache[row - 1][col].dup
+          result << [row]
+        elsif col > row
+          (1...col).each do |column|
+            cache[row][column].each do |hop|
+              next if (col - column) > k
+              result << hop + [col - column]
+            end
+          end
+        elsif row > col
+          result = cache[col][col]
+        end
+        cache[row][col] = result
       end
     end
-    @super_cache[n] = value
-    @super_cache[n]
+    cache
   end
 
   def condense_array(arr, num)
